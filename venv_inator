@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Répertoire de départ pour la recherche des environnements virtuels
+root_directory="./"  # Remplacez ceci par votre chemin de départ
+
+# Utilisation de find pour rechercher tous les .venv récursivement
+find "$root_directory" -type d -name ".venv" | while read -r venv_path; do
+    # Activer l'environnement virtuel
+    source "$venv_path/bin/activate"
+
+    # Exécuter pip freeze et sauvegarder la liste des paquets
+    freeze_output=$(pip freeze)
+
+    # Chemin pour sauvegarder les exigences (requirements)
+    project_directory=$(dirname "$venv_path")
+    requirements_file="$project_directory/requirements.txt"
+    echo "$freeze_output" > "$requirements_file"
+
+    # Désactiver l'environnement virtuel
+    deactivate
+    rm -rf "$venv_path"
+    # Supprimer le dossier __pycache__
+    pycache_directory="$project_directory/__pycache__"
+    if [ -d "$pycache_directory" ]; then
+        rm -rf "$pycache_directory"
+        echo "Dossier $pycache_directory supprimé."
+    fi
+    echo "Paquets de l'environnement virtuel dans $venv_path sauvegardés dans $requirements_file"
+done
